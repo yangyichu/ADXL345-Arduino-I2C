@@ -1,0 +1,57 @@
+#include <Wire.h>
+
+#define X0 0x32
+#define X1 0x33
+#define Y0 0x34
+#define Y1 0x35
+#define Z0 0x36
+#define Z1 0x37
+#define CTL_ad 0x2D
+const int ADXL_ad[2]={0x53,0x1D};
+
+void setup() {
+  // put your setup code here, to run once:
+  Wire.begin();
+  Serial.begin(9600);
+  pinMode(7, OUTPUT);
+  digitalWrite(7,LOW);
+  Wire.beginTransmission(ADXL_ad[0]);
+  Wire.write(CTL_ad);
+  Wire.write(8);//1开始测量，CTL寄存器设定为0001000
+  Wire.endTransmission();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  int x0,x1,x;
+  int y0,y1,y;
+  double G[2];
+  Wire.beginTransmission(ADXL_ad[0]);
+  Wire.write(X0);
+  Wire.write(X1);
+  Wire.endTransmission();
+  Wire.requestFrom(ADXL_ad[0], 2);
+  if (Wire.available() <= 2);
+  {
+    x0 = Wire.read();
+    x1 = Wire.read();
+    x1 = x1 << 8;
+    x = x0 + x1;
+  }
+  Wire.beginTransmission(ADXL_ad[0]);
+  Wire.write(Y0);
+  Wire.write(Y1);
+  Wire.endTransmission();
+  Wire.requestFrom(ADXL_ad[0], 2);
+  if (Wire.available() <= 2);
+  {
+    y0 = Wire.read();
+    y1 = Wire.read();
+    y1 = y1 << 8;
+    y = y0 + y1;
+  }
+  G[0] = x/256.0;//把输出结果转换为重力加速度g,精确到小数点后2位。
+  G[1] = y/256.0;
+  Serial.print(G[0]);Serial.print("  ");Serial.println(G[0]);
+  delay(50);
+}
